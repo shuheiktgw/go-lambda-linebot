@@ -7,9 +7,15 @@
   revision = "2d482ef09017ae953b1e8d5a6ddac5b696663a3c"
   version = "v1.6.0"
 
+[[projects]]
+  name = "github.com/line/line-bot-sdk-go"
+  packages = ["linebot"]
+  revision = "d787aef1744dc11dbde0fac149e6fbbdbe29d3d6"
+  version = "v4.0.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "eec077a636305df96e459e24c60753115240ecb0e75e7ddf8853ce461e4bbc38"
+  inputs-digest = "62b313084ad336818f0f9ad4a6fb3936666a2ac275ff52cc4663e5e60e84b8f8"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -102,7 +102,7 @@ func TestParseRequest_Success(t *testing.T) {
 		Body:    testEvents,
 	}
 
-	got, err := ParseRequest("rightSecret", request)
+	got, err := ParseRequest("rightSecret", &request)
 	if err != nil {
 		t.Fatalf("ParseRequest returns unexpected error: %s", err)
 	}
@@ -122,7 +122,7 @@ func TestParseRequest_Fail(t *testing.T) {
 		Body:    testEvents,
 	}
 
-	if _, got := ParseRequest("rightSecret", request); got != linebot.ErrInvalidSignature {
+	if _, got := ParseRequest("rightSecret", &request); got != linebot.ErrInvalidSignature {
 		t.Fatalf("ParseRequest returns unexpected error: want: %s, got: %s", linebot.ErrInvalidSignature, got)
 	}
 }

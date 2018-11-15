@@ -4,9 +4,12 @@ go-lambda-linebot
 [![CircleCI](https://circleci.com/gh/shuheiktgw/go-lambda-linebot.svg?style=svg)](https://circleci.com/gh/shuheiktgw/go-lambda-linebot)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-`go-lambda-linebot` provides a functionality to parse `event.APIGatewayProxyRequest` and turn it into an array of `linebot.Event`. This is useful especially when you create LINE bot using their [Messaging API](https://developers.line.me/ja/services/messaging-api/) with AWS Lambda and API Gateway. 
+`go-lambda-linebot` provides utility functions to parse AWS Lambda Events and turn them into `linebot.Event`.  
 
 ## Example
+
+### `ParseAPIGatewayProxyRequest`
+`ParseAPIGatewayProxyRequest` parses `events.APIGatewayProxyRequest` and turns it into an array of `linebot.Event`. The implementation of `ParseAPIGatewayProxyRequest` follows [webhook.go](https://github.com/line/line-bot-sdk-go/blob/master/linebot/webhook.go)  in [line/line-bot-sdk-go](https://github.com/line/line-bot-sdk-go).
 
 ``` go
 package main
@@ -20,7 +23,7 @@ import (
 )
 
 func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	lineEvents, err := parser.ParseRequest(os.Getenv("CHANNEL_SECRET"), &request)
+	lineEvents, err := parser.ParseAPIGatewayProxyRequest(os.Getenv("CHANNEL_SECRET"), &request)
 	
 	# Do something useful...
 }
@@ -30,7 +33,30 @@ func main() {
 }
 ```
 
-The implementation of `parser.ParseRequest` follows [webhook.go](https://github.com/line/line-bot-sdk-go/blob/master/linebot/webhook.go)  in [line/line-bot-sdk-go](https://github.com/line/line-bot-sdk-go).
+### `ParseSNSEvent`
+`ParseSNSEvent` parses `events.SNSEvent` and turns it inti `linebot.Event`. `ParseSNSEvent` assumes that you provide a single `linebot.Event` in the Message field of SNS.
+
+``` go
+package main
+
+import (
+	"os"
+
+	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/shuheiktgw/go-lambda-linebot/parser"
+)
+
+func handler(request event events.SNSEvent) error {
+	lineEvent, err := parser.ParseSNSEvent(&request)
+	
+	# Do something useful...
+}
+
+func main() {
+	lambda.Start(handler)
+}
+```
 
 ## Install
 

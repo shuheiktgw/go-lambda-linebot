@@ -27,7 +27,7 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
-var testProxyRequest = `{
+var testEvents = `{
     "events": [
         {
             "replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
@@ -60,6 +60,22 @@ var testProxyRequest = `{
         }
     ]
 }
+`
+
+var testEvent = `{
+            "replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
+            "type": "message",
+            "timestamp": 1462629479859,
+            "source": {
+                "type": "user",
+                "userId": "u206d25c2ea6bd87c17655609a1c37cb8"
+            },
+            "message": {
+                "id": "325708",
+                "type": "text",
+                "text": "Hello, world"
+            }
+        }
 `
 
 var expectedEvents = []*linebot.Event{
@@ -95,11 +111,11 @@ var expectedEvents = []*linebot.Event{
 func TestParseAPIGatewayProxyRequest_Success(t *testing.T) {
 	// Create a right signature
 	mac := hmac.New(sha256.New, []byte("rightSecret"))
-	mac.Write([]byte(testProxyRequest))
+	mac.Write([]byte(testEvents))
 
 	request := events.APIGatewayProxyRequest{
 		Headers: map[string]string{"X-Line-Signature": base64.StdEncoding.EncodeToString(mac.Sum(nil))},
-		Body:    testProxyRequest,
+		Body:    testEvents,
 	}
 
 	got, err := ParseAPIGatewayProxyRequest("rightSecret", &request)
@@ -115,14 +131,49 @@ func TestParseAPIGatewayProxyRequest_Success(t *testing.T) {
 func TestParseAPIGatewayProxyRequest_Fail(t *testing.T) {
 	// Create a wrong signature
 	mac := hmac.New(sha256.New, []byte("wrongSecret"))
-	mac.Write([]byte(testProxyRequest))
+	mac.Write([]byte(testEvents))
 
 	request := events.APIGatewayProxyRequest{
 		Headers: map[string]string{"X-Line-Signature": base64.StdEncoding.EncodeToString(mac.Sum(nil))},
-		Body:    testProxyRequest,
+		Body:    testEvents,
 	}
 
 	if _, got := ParseAPIGatewayProxyRequest("rightSecret", &request); got != linebot.ErrInvalidSignature {
 		t.Fatalf("ParseAPIGatewayProxyRequest returns unexpected error: want: %s, got: %s", linebot.ErrInvalidSignature, got)
+	}
+}
+
+func TestParseSNSEvent(t *testing.T) {
+	event := events.SNSEvent{
+		Records: []events.SNSEventRecord{
+			{
+				SNS: events.SNSEntity{
+					Message: testEvent,
+				},
+			},
+		},
+	}
+
+	want := &linebot.Event{
+		ReplyToken: "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
+		Type:       linebot.EventTypeMessage,
+		Timestamp:  time.Date(2016, time.May, 7, 13, 57, 59, int(859*time.Millisecond), time.UTC),
+		Source: &linebot.EventSource{
+			Type:   linebot.EventSourceTypeUser,
+			UserID: "u206d25c2ea6bd87c17655609a1c37cb8",
+		},
+		Message: &linebot.TextMessage{
+			ID:   "325708",
+			Text: "Hello, world",
+		},
+	}
+
+	got, err := ParseSNSEvent(&event)
+	if err != nil {
+		t.Fatalf("ParseSNSEvent returns unexpected error: %s", err)
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("ParseSNSEvent returns unexpected events: want: %s, got %s", want, got)
 	}
 }

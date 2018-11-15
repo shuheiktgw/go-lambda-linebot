@@ -43,6 +43,16 @@ func ParseAPIGatewayProxyRequest(channelSecret string, r *events.APIGatewayProxy
 	return request.Events, nil
 }
 
+// ParseSNSEvent turns events.SNSEvent into linebot.Event
+func ParseSNSEvent(r *events.SNSEvent) (*linebot.Event, error) {
+	var event linebot.Event
+	if err := json.Unmarshal([]byte(r.Records[0].SNS.Message), &event); err != nil {
+		return nil, err
+	}
+
+	return &event, nil
+}
+
 func validateSignature(channelSecret, signature string, body []byte) bool {
 	decoded, err := base64.StdEncoding.DecodeString(signature)
 	if err != nil {

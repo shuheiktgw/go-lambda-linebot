@@ -27,7 +27,7 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
-var testEvents = `{
+var testProxyRequest = `{
     "events": [
         {
             "replyToken": "nHuyWiB7yP5Zw52FIkcQobQuGDXCTA",
@@ -92,37 +92,37 @@ var expectedEvents = []*linebot.Event{
 	},
 }
 
-func TestParseRequest_Success(t *testing.T) {
+func TestParseAPIGatewayProxyRequest_Success(t *testing.T) {
 	// Create a right signature
 	mac := hmac.New(sha256.New, []byte("rightSecret"))
-	mac.Write([]byte(testEvents))
+	mac.Write([]byte(testProxyRequest))
 
 	request := events.APIGatewayProxyRequest{
 		Headers: map[string]string{"X-Line-Signature": base64.StdEncoding.EncodeToString(mac.Sum(nil))},
-		Body:    testEvents,
+		Body:    testProxyRequest,
 	}
 
-	got, err := ParseRequest("rightSecret", &request)
+	got, err := ParseAPIGatewayProxyRequest("rightSecret", &request)
 	if err != nil {
-		t.Fatalf("ParseRequest returns unexpected error: %s", err)
+		t.Fatalf("ParseAPIGatewayProxyRequest returns unexpected error: %s", err)
 	}
 
 	if !reflect.DeepEqual(got, expectedEvents) {
-		t.Errorf("ParseRequest returns unexpected events: want: %s, got %s", expectedEvents, got)
+		t.Errorf("ParseAPIGatewayProxyRequest returns unexpected events: want: %s, got %s", expectedEvents, got)
 	}
 }
 
-func TestParseRequest_Fail(t *testing.T) {
+func TestParseAPIGatewayProxyRequest_Fail(t *testing.T) {
 	// Create a wrong signature
 	mac := hmac.New(sha256.New, []byte("wrongSecret"))
-	mac.Write([]byte(testEvents))
+	mac.Write([]byte(testProxyRequest))
 
 	request := events.APIGatewayProxyRequest{
 		Headers: map[string]string{"X-Line-Signature": base64.StdEncoding.EncodeToString(mac.Sum(nil))},
-		Body:    testEvents,
+		Body:    testProxyRequest,
 	}
 
-	if _, got := ParseRequest("rightSecret", &request); got != linebot.ErrInvalidSignature {
-		t.Fatalf("ParseRequest returns unexpected error: want: %s, got: %s", linebot.ErrInvalidSignature, got)
+	if _, got := ParseAPIGatewayProxyRequest("rightSecret", &request); got != linebot.ErrInvalidSignature {
+		t.Fatalf("ParseAPIGatewayProxyRequest returns unexpected error: want: %s, got: %s", linebot.ErrInvalidSignature, got)
 	}
 }

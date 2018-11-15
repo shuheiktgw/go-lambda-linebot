@@ -24,8 +24,8 @@ import (
 	"github.com/line/line-bot-sdk-go/linebot"
 )
 
-// ParseRequest turns events.APIGatewayProxyRequest into array of linebot.Event
-func ParseRequest(channelSecret string, r *events.APIGatewayProxyRequest) ([]*linebot.Event, error) {
+// ParseAPIGatewayProxyRequest turns events.APIGatewayProxyRequest into array of linebot.Event
+func ParseAPIGatewayProxyRequest(channelSecret string, r *events.APIGatewayProxyRequest) ([]*linebot.Event, error) {
 	body := []byte(r.Body)
 
 	if !validateSignature(channelSecret, r.Headers["X-Line-Signature"], body) {
